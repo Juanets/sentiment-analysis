@@ -1,3 +1,4 @@
 # sentiment-analysis
-social experiment based on tweets  
-trying to see how people are reacting to #PresidentTrump
+social experiment  
+  
+trying to see how people are reacting to [#PresidentTrump](https://twitter.com/hashtag/PresidentTrump?f=tweets&vertical=default)
