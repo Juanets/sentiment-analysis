@@ -2,7 +2,12 @@ import json
 import tweepy
 from secrets import *
 from textblob import TextBlob
-    
+from plot import Plot
+
+# plotly objects
+p = Plot()
+plt_stream = p.s
+
 # store sentiment
 samples = []
 
@@ -35,16 +40,26 @@ class Listener(tweepy.StreamListener):
     
 
     def average(self, s):
-        global samples       
+        global samples   
+        global plt_stream    
 
         # if analysis is strong enough and sentiment isn't neutral
         if s.subjectivity > .8 and s.polarity != 0.0:
             samples.append(s.polarity)
             average_sentiment = sum(samples) / float(len(samples))
             
-            print("AVG: {}".format(average_sentiment))
+            # add to stream
+            plt_stream.write(dict(y=[average_sentiment]))
 
 
-# start stream of tweets
-stream = tweepy.Stream(TwitterAPI().api.auth, Listener())
-stream.filter(track=['obama'])
+def start_stream():
+    # start stream of tweets
+    stream = tweepy.Stream(TwitterAPI().api.auth, Listener())
+    stream.filter(track=['trump'], async=True)
+
+    # open plotly stream
+    p.init_plot('trump')
+    plt_stream.open()
+
+if __name__ == '__main__':
+    start_stream()
