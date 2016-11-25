@@ -1,8 +1,8 @@
 import json
 import tweepy
 from secrets import *
-from textblob import TextBlob
 from plot import Plot
+from textblob import TextBlob
 
 # plotly objects
 p = Plot()
@@ -25,10 +25,11 @@ class Listener(tweepy.StreamListener):
         try:
             # get tweet data
             all_data = json.loads(data)
-            tweet = all_data['text']
             
             # avoid RTs
-            if 'RT' not in tweet:
+            if not all_data['retweeted'] and 'RT @' not in all_data['text']:
+                tweet = all_data['text']
+                print(tweet)
                 tweet_analysis = TextBlob(tweet)
                 self.average(tweet_analysis.sentiment)
         except Exception as e:
@@ -52,14 +53,11 @@ class Listener(tweepy.StreamListener):
             plt_stream.write(dict(y=[average_sentiment]))
 
 
-def start_stream():
+def start_stream(topic):
     # start stream of tweets
     stream = tweepy.Stream(TwitterAPI().api.auth, Listener())
-    stream.filter(track=['trump'], async=True)
+    stream.filter(track=[topic], async=True)
 
     # open plotly stream
-    p.init_plot('trump')
+    p.init_plot(topic)
     plt_stream.open()
-
-if __name__ == '__main__':
-    start_stream()
