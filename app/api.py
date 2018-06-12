@@ -27,12 +27,15 @@ class Listener(tweepy.StreamListener):
             all_data = json.loads(data)
             
             # avoid RTs
-            if not all_data['retweeted'] and 'RT @' not in all_data['text']:
+            if (not all_data['retweeted'] 
+                and 'RT @' not in all_data['text']
+                and 'http' not in all_data['text']):
+
                 tweet = all_data['text']
-                print(tweet)
                 tweet_analysis = TextBlob(tweet)
-                self.average(tweet_analysis.sentiment)
+                self.average(tweet_analysis)
         except Exception as e:
+            print(e)
             pass
     
     
@@ -40,13 +43,17 @@ class Listener(tweepy.StreamListener):
         print(status_code)
     
 
-    def average(self, s):
-        global samples   
-        global plt_stream    
+    def average(self, tweet):
+        # translate tweet if language isn't english
+        language = tweet.detect_language()
+        if language is not 'en':
+            tweet = tweet.translate(from_lang=language, to='en')
+
+        print(tweet)
 
         # if analysis is strong enough and sentiment isn't neutral
-        if s.subjectivity > .8 and s.polarity != 0.0:
-            samples.append(s.polarity)
+        if tweet.sentiment.subjectivity > .6 and tweet.sentiment.polarity != 0.0:
+            samples.append(tweet.sentiment.polarity)
             average_sentiment = sum(samples) / float(len(samples))
             
             # add to stream
